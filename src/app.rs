@@ -20,6 +20,12 @@ pub struct App<'window> {
     wgpu_ctx: Option<WgpuCtx<'window>>,
 }
 
+impl App<'_> {
+    pub fn init(&mut self) {
+        self.player = Some(player::Player::new());
+    }
+}
+
 impl<'window> ApplicationHandler for App<'window> {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         if self.window.is_none() {
@@ -32,7 +38,6 @@ impl<'window> ApplicationHandler for App<'window> {
             self.window = Some(window.clone());
             let wgpu_ctx = WgpuCtx::new(window.clone());
             self.wgpu_ctx = Some(wgpu_ctx);
-            self.player = Some(player::Player::new());
         }
     }
 
