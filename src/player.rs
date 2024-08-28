@@ -2,7 +2,7 @@
 // my lifespan probably shortened by a few years because of rust
 use std::collections::HashMap;
 
-use crate::utils::{self, magnitude, normalize, sqr_magnitude};
+use crate::utils::{self, magnitude, normalize};
 
 pub struct Player {
     pub player_position: [f32; 3],
@@ -89,7 +89,7 @@ impl Player {
             }
         }
 
-        if (magnitude(movement) > move_amount) {
+        if magnitude(movement) > move_amount {
             movement = normalize(movement);
             movement[0] *= move_amount;
             movement[1] *= move_amount;

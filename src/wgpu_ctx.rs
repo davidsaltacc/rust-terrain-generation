@@ -224,15 +224,13 @@ impl<'window> WgpuCtx<'window> {
 
     pub fn update(&mut self, dt: std::time::Duration, player: &player::Player) {
 
-        let camera_position = Point3::new(0.0, 0.0, -5.0);
-        let look_direction = Point3::new(0.0, 0.0, 0.0);
         let up_direction = cgmath::Vector3::unit_y();
         
-        let (view_mat, project_mat, _) = transforms::create_view_projection(camera_position, look_direction, up_direction, self.surface_config.width as f32 / self.surface_config.height as f32, true);
+        let (view_mat, project_mat, _) = transforms::create_view_projection(Point3::new(0.0, 0.0, -0.0000001), Point3::new(0.0, 0.0, 0.0), up_direction, self.surface_config.width as f32 / self.surface_config.height as f32, true);
         self.view_mat = view_mat;
         self.project_mat = project_mat;
 
-        let model_mat = transforms::create_transforms(player.get_relative_position([0.0, 0.0, 0.0]), [0.0, 0.0, 0.0], [1.0, 1.0, 1.0]);
+        let model_mat = transforms::create_transforms(player.get_relative_position([0.0, 0.0, 5.0]), [0.0, 0.0, 0.0], [1.0, 1.0, 1.0]);
         let mvp_mat = self.project_mat * self.view_mat * model_mat;        
         let mvp_ref: &[f32; 16] = mvp_mat.as_ref();
         self.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(mvp_ref));

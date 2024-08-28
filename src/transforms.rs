@@ -1,6 +1,6 @@
 
 use std::f32::consts::PI;
-use cgmath::{ortho, perspective, Matrix3, Matrix4, Point3, Rad, Vector3};
+use cgmath::{ortho, perspective, Matrix4, Point3, Rad, Vector3};
 
 pub const OPENGL2WGPU: Matrix4<f32> = Matrix4::new(
     1.0, 0.0, 0.0, 0.0,

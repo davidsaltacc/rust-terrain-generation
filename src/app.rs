@@ -89,7 +89,7 @@ impl<'window> ApplicationHandler for App<'window> {
         }
     }
 
-    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+    fn about_to_wait(&mut self, _event_loop: &ActiveEventLoop) {
         self.window.as_mut().unwrap().request_redraw();
     }
 }
