@@ -8,7 +8,7 @@ use winit::event_loop::ActiveEventLoop;
 use winit::window::{Window, WindowId};
 
 use crate::wgpu_ctx::WgpuCtx;
-mod player;
+use crate::player;
 
 #[derive(Default)]
 pub struct App<'window> {
@@ -20,17 +20,10 @@ pub struct App<'window> {
     wgpu_ctx: Option<WgpuCtx<'window>>,
 }
 
-impl App<'_> {
-    pub fn init(&mut self) {
-        self.player = Some(player::Player::new());
-    }
-}
-
 impl<'window> ApplicationHandler for App<'window> {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         if self.window.is_none() {
             let win_attr = Window::default_attributes().with_title("wgpu winit example");
-            // use Arc.
             let window = Arc::new(
                 event_loop
                     .create_window(win_attr)
@@ -39,6 +32,7 @@ impl<'window> ApplicationHandler for App<'window> {
             self.window = Some(window.clone());
             let wgpu_ctx = WgpuCtx::new(window.clone());
             self.wgpu_ctx = Some(wgpu_ctx);
+            self.player = Some(player::Player::new());
         }
     }
 
@@ -70,6 +64,9 @@ impl<'window> ApplicationHandler for App<'window> {
                     else {
                         self.dt = Duration::new(0, 0);
                     }
+                    
+                    wgpu_ctx.update(self.dt, self.player.as_mut().unwrap().player_position, self.player.as_mut().unwrap().camera_rotation);
+                    
                     wgpu_ctx.draw();
                     self.player.as_mut().unwrap().update(&self.keys, self.dt.as_secs_f32());
                     self.dt_start = Some(Instant::now());
