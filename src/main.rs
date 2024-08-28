@@ -6,24 +6,23 @@ use winit::{
 };
 
 fn main() {
-    pollster::block_on(run());
+    run();
 }
 
-async fn run() {
+fn run<'a>() {
     struct State<'a> {
         surface: wgpu::Surface<'a>,
         device: wgpu::Device,
         queue: wgpu::Queue,
         config: wgpu::SurfaceConfiguration,
         size: winit::dpi::PhysicalSize<u32>,
-        window: &'a Window,
+        window: Window,
     }
 
     impl<'a> State<'a> {
-        async fn new(window: &'a Window) -> State<'a> {
+        fn new(window: Window) -> State<'a> {
             let size = window.inner_size();
     
-            //some shit for wasm32, made it universal
             let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
                 #[cfg(not(target_arch="wasm32"))]
                 backends: wgpu::Backends::PRIMARY,
@@ -34,15 +33,15 @@ async fn run() {
             
             let surface = instance.create_surface(window).unwrap();
     
-            let adapter = instance.request_adapter(
+            let adapter = pollster::block_on(instance.request_adapter(
                 &wgpu::RequestAdapterOptions {
                     power_preference: wgpu::PowerPreference::default(),
                     compatible_surface: Some(&surface),
                     force_fallback_adapter: false,
                 },
-            ).await.unwrap();
+            )).unwrap();
        
-            let (device, queue) = adapter.request_device(
+            let (device, queue) = pollster::block_on(adapter.request_device(
                 &wgpu::DeviceDescriptor{
                     required_features: wgpu::Features::empty(),
                     required_limits: if cfg!(target_arch = "wasm32") {
@@ -54,7 +53,7 @@ async fn run() {
                     label: None,
                 },
                 None,
-            ).await.unwrap();
+            )).unwrap();
 
             let surface_caps = surface.get_capabilities(&adapter);
 
@@ -105,7 +104,10 @@ async fn run() {
         }
     }
 
-    let mut state = State::new(&window).await;
+    let event_loop = EventLoop::new(); 
+    let window = WindowBuilder::new().build(&event_loop).unwrap();
+
+    let state = State::new(window);
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
