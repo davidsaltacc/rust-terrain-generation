@@ -10,6 +10,7 @@ use wgpu::util::DeviceExt;
 use wgpu::MemoryHints::Performance;
 use wgpu::ShaderSource;
 use winit::window::Window;
+use crate::player;
 
 pub struct WgpuCtx<'window> {
     surface: wgpu::Surface<'window>,
@@ -221,17 +222,17 @@ impl<'window> WgpuCtx<'window> {
         self.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(mvp_ref));
     }
 
-    pub fn update(&mut self, dt: std::time::Duration, cam_pos: [f32; 3], cam_rot: [f32; 3]) {
+    pub fn update(&mut self, dt: std::time::Duration, player: &player::Player) {
 
-        let camera_position = Point3::new(cam_pos[0], cam_pos[1], cam_pos[2]);
-        let look_direction = Point3::new(cam_rot[0], cam_rot[1], cam_rot[2]);
+        let camera_position = Point3::new(0.0, 0.0, -5.0);
+        let look_direction = Point3::new(0.0, 0.0, 0.0);
         let up_direction = cgmath::Vector3::unit_y();
         
         let (view_mat, project_mat, _) = transforms::create_view_projection(camera_position, look_direction, up_direction, self.surface_config.width as f32 / self.surface_config.height as f32, true);
         self.view_mat = view_mat;
         self.project_mat = project_mat;
 
-        let model_mat = transforms::create_transforms([0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [1.0, 1.0, 1.0]);
+        let model_mat = transforms::create_transforms(player.get_relative_position([0.0, 0.0, 0.0]), [0.0, 0.0, 0.0], [1.0, 1.0, 1.0]);
         let mvp_mat = self.project_mat * self.view_mat * model_mat;        
         let mvp_ref: &[f32; 16] = mvp_mat.as_ref();
         self.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(mvp_ref));

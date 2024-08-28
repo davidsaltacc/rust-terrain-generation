@@ -69,12 +69,12 @@ impl<'window> ApplicationHandler for App<'window> {
                     else {
                         self.dt = Duration::new(0, 0);
                     }
+                    self.dt_start = Some(Instant::now());
                     
-                    wgpu_ctx.update(self.dt, self.player.as_mut().unwrap().player_position, self.player.as_mut().unwrap().camera_rotation);
+                    wgpu_ctx.update(self.dt, &(self.player.as_mut().unwrap()));
                     
                     wgpu_ctx.draw();
                     self.player.as_mut().unwrap().update(&self.keys, self.dt.as_secs_f32());
-                    self.dt_start = Some(Instant::now());
                 }
             }
             WindowEvent::KeyboardInput {device_id: _, event, is_synthetic} => {
