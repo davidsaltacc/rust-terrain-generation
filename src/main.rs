@@ -7,6 +7,7 @@ mod app;
 mod wgpu_ctx;
 mod vertex_data;
 mod player;
+mod utils;
 
 fn main() -> Result<(), EventLoopError> {
     let event_loop = EventLoop::new().unwrap();
