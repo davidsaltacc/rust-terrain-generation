@@ -23,6 +23,7 @@ pub struct App<'window> {
 impl App<'_> {
     pub fn init(&mut self) {
         self.player = Some(player::Player::new());
+        self.player.as_mut().unwrap().speed = 2.0;
     }
 }
 
