@@ -2,6 +2,7 @@
 name = "terrain-generator"
 version = "0.1.0"
 edition = "2021"
+authors = ["justacoder", "edy131109", "coti7"]
 
 [dependencies]
 winit = "0.30.4"
