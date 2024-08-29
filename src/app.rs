@@ -47,6 +47,9 @@ impl<'window> ApplicationHandler for App<'window> {
         event: WindowEvent,
     ) {
         match event {
+            WindowEvent::CloseRequested => {
+                event_loop.exit();
+            }
             WindowEvent::Resized(new_size) => {
                 if let (Some(wgpu_ctx), Some(window)) =
                     (self.wgpu_ctx.as_mut(), self.window.as_ref())
