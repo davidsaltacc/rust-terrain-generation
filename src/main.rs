@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use crate::app::App;
 use winit::error::EventLoopError;
 use winit::event_loop::{ControlFlow, EventLoop};
