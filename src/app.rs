@@ -54,7 +54,6 @@ pub struct App<'window> {
 impl App<'_> {
     pub fn init(&mut self) {
         self.player = player::Player::new();
-        self.player.speed = 2.0;
     }
 }
 
@@ -121,10 +120,10 @@ impl<'window> ApplicationHandler for App<'window> {
         }
     }
 
-    fn device_event(&mut self, event_loop: &ActiveEventLoop, device_id: DeviceId, event: DeviceEvent) {
+    fn device_event(&mut self, _event_loop: &ActiveEventLoop, _device_id: DeviceId, event: DeviceEvent) {
         match event {
             DeviceEvent::MouseMotion { delta } => {
-                println!("{}, {}", delta.0, delta.1);
+                self.player.move_camera(delta.0 as f32, delta.1 as f32);
             }
             _ => ()
         }

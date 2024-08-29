@@ -1,18 +1,19 @@
 // I've shed tears of pain while writing this just so you know
 // my lifespan probably shortened by a few years because of rust
 use std::collections::HashMap;
-use crate::utils::{self, magnitude, normalize};
+use crate::{utils::{self, magnitude, normalize}, vector::Vector3};
 
 #[derive(Default)]
 pub struct Player {
-    pub player_position: [f32; 3],
-    pub camera_rotation: [f32; 3],
+    pub player_position: Vector3,
+    pub camera_rotation: Vector3,
     pub speed: f32,
+    pub sensitivity: f32,
 }
 
 impl Player {
     pub fn new() -> Self {
-        Self { player_position: [0.0, 0.0, 0.0], camera_rotation: [0.0, 0.0, 0.0], speed: 0.0 }
+        Self { player_position: Vector3::new(0.0, 0.0, 0.0), camera_rotation: Vector3::new(0.0, 0.0, 0.0), speed: 2.0, sensitivity: 0.1 }
     }
 
     // uncomment if ever needed
@@ -24,66 +25,66 @@ impl Player {
     //     self.camera_rotation = rotation;
     // }
 
-    fn move_player(&mut self, mut movement: [f32; 3], amount: f32, direction: [f32; 3]) -> [f32; 3] {
-        movement[0] += amount * direction[0];
-        movement[1] += amount * direction[1];
-        movement[2] += amount * direction[2];
+    fn move_player(&mut self, mut movement: Vector3, amount: f32, direction: Vector3) -> Vector3 {
+        movement.x = amount * direction.x;
+        movement.y = amount * direction.y;
+        movement.z = amount * direction.z;
         return movement;
+    }
+
+    pub fn move_camera(&mut self, x: f32, y: f32) {
+        self.camera_rotation.x += x * self.sensitivity;
+        self.camera_rotation.y -= y * self.sensitivity;
+
+        self.camera_rotation.x = self.camera_rotation.x % 360.0;
+        self.camera_rotation.y = self.camera_rotation.y.clamp(-85.0, 85.0);
     }
 
     // you will need to call this every frame
     pub fn update(&mut self, inputs: &HashMap<u8, bool>, dt: f32) {
-        let rotation: [f32; 3] = self.camera_rotation;
+        let rotation: Vector3 = self.camera_rotation;
         let move_amount = self.speed * dt;
-        let mut movement : [f32; 3] = [0.; 3];
+        let mut movement : Vector3 = Vector3::new(0.0, 0.0, 0.0);
 
-        if *inputs.get(&('w' as u8)).unwrap_or(&false) {
-            let direction: [f32; 3] = utils::rotation_to_direction(rotation);
-            movement = self.move_player(movement, move_amount, direction);
-        }
+        // these must be in this order if you move a and d after the rest shit will unexpectedly break.
         if *inputs.get(&('a' as u8)).unwrap_or(&false) {
-            let direction: [f32; 3] = utils::rotation_to_direction([rotation[0] + 270., rotation[1], rotation[2]]);
-            movement = self.move_player(movement, move_amount, direction);
-        }
-        if *inputs.get(&('s' as u8)).unwrap_or(&false) {
-            let direction: [f32; 3] = utils::rotation_to_direction([rotation[0] + 180., rotation[1], rotation[2]]);
-            movement = self.move_player(movement, move_amount, direction);
+            let direction: Vector3 = utils::rotation_to_direction(Vector3::new(rotation.x + 270., rotation.y, rotation.z));
+            movement += self.move_player(movement, move_amount, direction);
+            movement.y = 0.0;
         }
         if *inputs.get(&('d' as u8)).unwrap_or(&false) {
-            let direction: [f32; 3] = utils::rotation_to_direction([rotation[0] + 90., rotation[1], rotation[2]]);
-            movement = self.move_player(movement, move_amount, direction);
+            let direction: Vector3 = utils::rotation_to_direction(Vector3::new(rotation.x + 90., rotation.y, rotation.z));
+            movement += self.move_player(movement, move_amount, direction);
+            movement.y = 0.0;
+        }
+        if *inputs.get(&('w' as u8)).unwrap_or(&false) {
+            let direction: Vector3 = utils::rotation_to_direction(rotation);
+            movement += self.move_player(movement, move_amount, direction);
+        }
+        if *inputs.get(&('s' as u8)).unwrap_or(&false) {
+            let direction: Vector3 = utils::rotation_to_direction(Vector3::new(rotation.x + 180., -rotation.y, rotation.z));
+            movement += self.move_player(movement, move_amount, direction);
         }
         if *inputs.get(&('e' as u8)).unwrap_or(&false) {
-            let direction: [f32; 3] = utils::rotation_to_direction([rotation[0], rotation[1] + 90., rotation[2]]);
-            movement = self.move_player(movement, move_amount, direction);
+            let direction: Vector3 = utils::rotation_to_direction(Vector3::new(rotation.x, rotation.y + 90., rotation.z));
+            movement += self.move_player(movement, move_amount, direction);
         }
         if *inputs.get(&('q' as u8)).unwrap_or(&false) {
-            let direction: [f32; 3] = utils::rotation_to_direction([rotation[0], rotation[1] + 270., rotation[2]]);
-            movement = self.move_player(movement, move_amount, direction);
+            let direction: Vector3 = utils::rotation_to_direction(Vector3::new(rotation.x, rotation.y - 90., rotation.z));
+            movement += self.move_player(movement, move_amount, direction);
         }
         
         if magnitude(movement) > move_amount {
             movement = normalize(movement);
-            movement[0] *= move_amount;
-            movement[1] *= move_amount;
-            movement[2] *= move_amount;
+            movement *= move_amount;
         }
-        self.player_position[0] -= movement[0];
-        self.player_position[1] += movement[1];
-        self.player_position[2] += movement[2];
-    
+        movement.x = -movement.x;
+        self.player_position += movement;
     }
 
-    pub fn get_relative_position(&self, position: [f32; 3]) -> [f32; 3] {
-        let mut new_position: [f32; 3] = [0.0; 3];
-        new_position[0] = position[0] - self.player_position[0];
-        new_position[1] = position[1] - self.player_position[1];
-        new_position[2] = position[2] - self.player_position[2];
+    pub fn get_relative_position(&self, position: Vector3) -> Vector3 {
+        let new_position: Vector3 = position - self.player_position;
 
         return new_position;
     }
-
-    // pub fn get_relative_rotation(&self, rotation: [f32; 3]) -> [f32; 3] {
-    //     // idk yet
-    // }
 }
