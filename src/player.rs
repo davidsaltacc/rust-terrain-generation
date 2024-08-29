@@ -1,19 +1,21 @@
 // I've shed tears of pain while writing this just so you know
 // my lifespan probably shortened by a few years because of rust
 use std::collections::HashMap;
+
 use crate::{utils::{self, magnitude, normalize}, vector::Vector3};
 
 #[derive(Default)]
 pub struct Player {
     pub player_position: Vector3,
     pub camera_rotation: Vector3,
+    pub smooth_camera_rotation: Vector3,
     pub speed: f32,
     pub sensitivity: f32,
 }
 
 impl Player {
     pub fn new() -> Self {
-        Self { player_position: Vector3::new(0.0, 0.0, 0.0), camera_rotation: Vector3::new(0.0, 0.0, 0.0), speed: 2.0, sensitivity: 0.1 }
+        Self { player_position: Vector3::new(0.0, 0.0, 0.0), camera_rotation: Vector3::new(0.0, 0.0, 0.0), smooth_camera_rotation: Vector3::new(0.0, 0.0, 0.0), speed: 2.0, sensitivity: 0.1 }
     }
 
     // uncomment if ever needed
@@ -45,6 +47,8 @@ impl Player {
         let rotation: Vector3 = self.camera_rotation;
         let move_amount = self.speed * dt;
         let mut movement : Vector3 = Vector3::new(0.0, 0.0, 0.0);
+
+        self.smooth_camera_rotation = self.smooth_camera_rotation.lerp_vec(self.camera_rotation, 0.9 * dt * 30.0); // 30 is the smoothing factor (increase for roughness, decrease for smoothness)
 
         // these must be in this order if you move a and d after the rest shit will unexpectedly break.
         if *inputs.get(&('a' as u8)).unwrap_or(&false) {

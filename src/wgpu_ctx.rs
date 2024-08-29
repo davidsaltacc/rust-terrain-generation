@@ -227,7 +227,7 @@ impl<'window> WgpuCtx<'window> {
     pub fn update(&mut self, _dt: std::time::Duration, player: &player::Player) {
 
         let up_direction = cgmath::Vector3::unit_y();
-        let mut camera_look_direction: Vector3 = utils::rotation_to_direction(player.camera_rotation);
+        let mut camera_look_direction: Vector3 = utils::rotation_to_direction(player.smooth_camera_rotation);
         camera_look_direction.x = -camera_look_direction.x;
         
         let (view_mat, project_mat, _) = transforms::create_view_projection(Point3::new(0.0, 0.0, -0.0000001), Point3::from(camera_look_direction), up_direction, self.surface_config.width as f32 / self.surface_config.height as f32, true);
