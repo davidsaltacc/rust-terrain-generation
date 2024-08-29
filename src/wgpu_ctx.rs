@@ -249,10 +249,10 @@ impl<'window> WgpuCtx<'window> {
 
         let multisample_texture = self.device.create_texture(&wgpu::TextureDescriptor{
             format: surface_texture.texture.format(),
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            usage: surface_texture.texture.usage(),
             size: surface_texture.texture.size(),
             sample_count: 4,
-            mip_level_count: 1,
+            mip_level_count: surface_texture.texture.mip_level_count(),
             label: Some("Multisample Texture"),
             dimension: surface_texture.texture.dimension(),
             view_formats: &[]
