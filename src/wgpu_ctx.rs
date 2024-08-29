@@ -12,7 +12,6 @@ use wgpu::ShaderSource;
 use winit::window::Window;
 use crate::player;
 
-
 #[allow(unused)] // TODO remove this once it is used
 pub struct WgpuCtx<'window> {
     surface: wgpu::Surface<'window>,
@@ -26,7 +25,7 @@ pub struct WgpuCtx<'window> {
     view_mat: Matrix4<f32>,
     project_mat: Matrix4<f32>,
     vertex_buffer: wgpu::Buffer, 
-    uniform_buffer: wgpu::Buffer 
+    uniform_buffer: wgpu::Buffer,
 }
 
 #[repr(C)]
@@ -182,6 +181,11 @@ impl<'window> WgpuCtx<'window> {
                 bias: wgpu::DepthBiasState::default()
             }),
             multisample: wgpu::MultisampleState::default(),
+            multisample: wgpu::MultisampleState {
+                count: 4,
+                mask: 18446744073709551615,
+                alpha_to_coverage_enabled: false,
+            },
             multiview: None,
             cache: None
         });
@@ -204,7 +208,7 @@ impl<'window> WgpuCtx<'window> {
             view_mat,
             project_mat,
             vertex_buffer,
-            uniform_buffer
+            uniform_buffer,
         };
     }
 
@@ -244,6 +248,18 @@ impl<'window> WgpuCtx<'window> {
         let surface_texture = self.surface.get_current_texture().expect("Failed to acquire next swap chain texture");
         let texture_view = surface_texture.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
+        let multisample_texture = self.device.create_texture(&wgpu::TextureDescriptor{
+            format: surface_texture.texture.format(),
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            size: surface_texture.texture.size(),
+            sample_count: 4,
+            mip_level_count: 1,
+            label: Some("Multisample Texture"),
+            dimension: surface_texture.texture.dimension(),
+            view_formats: &[]
+        });
+        let multisample_view = multisample_texture.create_view(&wgpu::TextureViewDescriptor::default());
+
         let depth_texture = self.device.create_texture(&wgpu::TextureDescriptor {
             size: wgpu::Extent3d {
                 width: self.surface_config.width,
@@ -251,7 +267,7 @@ impl<'window> WgpuCtx<'window> {
                 depth_or_array_layers: 1
             },
             mip_level_count: 1,
-            sample_count: 1,
+            sample_count: 4,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Depth24Plus,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
@@ -265,8 +281,8 @@ impl<'window> WgpuCtx<'window> {
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Render Pass"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &texture_view,
-                    resolve_target: None,
+                    view: &multisample_view,
+                    resolve_target: Some(&texture_view),
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
                         store: wgpu::StoreOp::Store
@@ -278,7 +294,7 @@ impl<'window> WgpuCtx<'window> {
                         load: wgpu::LoadOp::Clear(1.0),
                         store: wgpu::StoreOp::Discard
                     }),
-                    stencil_ops: None
+                    stencil_ops: None,
                 }),
                 timestamp_writes: None,
                 occlusion_query_set: None
