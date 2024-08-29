@@ -33,7 +33,7 @@ impl Player {
 
     // you will need to call this every frame
     pub fn update(&mut self, inputs: &HashMap<u8, bool>, dt: f32) {
-        let mut rotation: [f32; 3] = self.camera_rotation;
+        let rotation: [f32; 3] = self.camera_rotation;
         let move_amount = self.speed * dt;
         let mut movement : [f32; 3] = [0.; 3];
 

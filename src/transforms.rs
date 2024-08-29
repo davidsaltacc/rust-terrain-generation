@@ -26,6 +26,7 @@ pub fn create_view_projection(cam_pos: Point3<f32>, cam_look_dir: Point3<f32>, u
 
 }
 
+#[allow(unused)] // TODO remove this once it is used
 pub fn create_view(cam_pos: Point3<f32>, cam_look_dir: Point3<f32>, up_direction: Vector3<f32>) -> Matrix4<f32> {
     return Matrix4::look_at_rh(cam_pos, cam_look_dir, up_direction);
 }

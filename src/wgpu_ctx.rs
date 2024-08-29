@@ -11,6 +11,8 @@ use wgpu::ShaderSource;
 use winit::window::Window;
 use crate::player;
 
+
+#[allow(unused)] // TODO remove this once it is used
 pub struct WgpuCtx<'window> {
     surface: wgpu::Surface<'window>,
     surface_config: wgpu::SurfaceConfiguration,

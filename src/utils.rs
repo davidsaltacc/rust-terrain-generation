@@ -14,6 +14,7 @@ pub fn rotation_to_direction(rotation: [f32; 3]) -> [f32; 3] {
     return direction;
 }
 
+#[allow(unused)] // TODO remove this once it is used
 pub fn sqr_magnitude(vector: [f32; 3]) -> f32 {
     return vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2];
 }
