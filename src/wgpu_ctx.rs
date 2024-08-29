@@ -180,7 +180,6 @@ impl<'window> WgpuCtx<'window> {
                 stencil: wgpu::StencilState::default(),
                 bias: wgpu::DepthBiasState::default()
             }),
-            multisample: wgpu::MultisampleState::default(),
             multisample: wgpu::MultisampleState {
                 count: 4,
                 mask: 18446744073709551615,
