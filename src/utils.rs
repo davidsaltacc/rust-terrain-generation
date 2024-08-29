@@ -1,5 +1,5 @@
 pub fn degrees_to_radians(degrees: f32) -> f32 {
-    return (f64::from(degrees) * std::f64::consts::PI / 180.0) as f32;
+    return (f64::from(degrees) * std::f64::consts::PI / 180.) as f32;
 }
 
 pub fn rotation_to_direction(rotation: [f32; 3]) -> [f32; 3] {
@@ -7,9 +7,9 @@ pub fn rotation_to_direction(rotation: [f32; 3]) -> [f32; 3] {
     let y: f32 = degrees_to_radians(rotation[1]);
 
     let mut direction: [f32; 3] = [0.0; 3];
-    direction[0] = (y.cos() * x.sin() * 10000.0).round() / 10000.0;
-    direction[1] = (y.sin() * 10000.0) / 10000.0;
-    direction[2] = (y.cos() * x.cos() * 10000.0).round() / 10000.0;
+    direction[0] = (y.cos() * x.sin() * 10000.).round() / 10000.;
+    direction[1] = (y.sin() * 10000.) / 10000.;
+    direction[2] = (y.cos() * x.cos() * 10000.).round() / 10000.;
 
     return direction;
 }

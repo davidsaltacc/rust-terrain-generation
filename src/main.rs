@@ -14,5 +14,5 @@ fn main() -> Result<(), EventLoopError> {
     event_loop.set_control_flow(ControlFlow::Poll);
     let mut app = App::default();
     app.init();
-    event_loop.run_app(&mut app)
+    return event_loop.run_app(&mut app);
 }

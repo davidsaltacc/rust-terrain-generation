@@ -1,12 +1,10 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use std::collections::HashMap;
-
 use winit::application::ApplicationHandler;
 use winit::event::*;
 use winit::event_loop::ActiveEventLoop;
 use winit::window::{Window, WindowId};
-
 use crate::wgpu_ctx::WgpuCtx;
 use crate::player;
 
@@ -49,11 +47,6 @@ impl<'window> ApplicationHandler for App<'window> {
         event: WindowEvent,
     ) {
         match event {
-            WindowEvent::CloseRequested => {
-                // macOS err: https://github.com/rust-windowing/winit/issues/3668
-                // This will be fixed as winit 0.30.1.
-                event_loop.exit();
-            }
             WindowEvent::Resized(new_size) => {
                 if let (Some(wgpu_ctx), Some(window)) =
                     (self.wgpu_ctx.as_mut(), self.window.as_ref())

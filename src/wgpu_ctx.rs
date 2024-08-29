@@ -3,7 +3,6 @@ use crate::{transforms, vertex_data};
 use std::borrow::Cow;
 use std::iter;
 use std::sync::Arc;
-use std::time::Duration;
 use bytemuck::{Pod, Zeroable};
 use cgmath::{Matrix4, Point3};
 use wgpu::util::DeviceExt;
@@ -222,7 +221,7 @@ impl<'window> WgpuCtx<'window> {
         self.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(mvp_ref));
     }
 
-    pub fn update(&mut self, dt: std::time::Duration, player: &player::Player) {
+    pub fn update(&mut self, _dt: std::time::Duration, player: &player::Player) {
 
         let up_direction = cgmath::Vector3::unit_y();
         
