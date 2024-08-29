@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 use crate::utils::{self, magnitude, normalize};
 
+#[derive(Default)]
 pub struct Player {
     pub player_position: [f32; 3],
     pub camera_rotation: [f32; 3],

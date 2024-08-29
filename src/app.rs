@@ -12,7 +12,7 @@ use crate::player;
 pub struct App<'window> {
     dt_start: Option<Instant>,
     dt: Duration,
-    player: Option<player::Player>,
+    player: player::Player,
     keys: HashMap<u8, bool>,
     window: Option<Arc<Window>>,
     wgpu_ctx: Option<WgpuCtx<'window>>,
@@ -20,23 +20,19 @@ pub struct App<'window> {
 
 impl App<'_> {
     pub fn init(&mut self) {
-        self.player = Some(player::Player::new());
-        self.player.as_mut().unwrap().speed = 2.0;
+        self.player = player::Player::new();
+        self.player.speed = 2.0;
     }
 }
 
 impl<'window> ApplicationHandler for App<'window> {
+
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         if self.window.is_none() {
-            let win_attr = Window::default_attributes().with_title("wgpu winit example");
-            let window = Arc::new(
-                event_loop
-                    .create_window(win_attr)
-                    .expect("create window err."),
-            );
+            let win_attr = Window::default_attributes().with_title("Rust Terrain Generation");
+            let window = Arc::new(event_loop.create_window(win_attr).expect("Error creating window."));
             self.window = Some(window.clone());
-            let wgpu_ctx = WgpuCtx::new(window.clone());
-            self.wgpu_ctx = Some(wgpu_ctx);
+            self.wgpu_ctx = Some(WgpuCtx::new(window.clone()));
         }
     }
 
@@ -68,10 +64,10 @@ impl<'window> ApplicationHandler for App<'window> {
                     }
                     self.dt_start = Some(Instant::now());
                     
-                    wgpu_ctx.update(self.dt, &(self.player.as_mut().unwrap()));
+                    wgpu_ctx.update(self.dt, &(self.player));
                     
                     wgpu_ctx.draw();
-                    self.player.as_mut().unwrap().update(&self.keys, self.dt.as_secs_f32());
+                    self.player.update(&self.keys, self.dt.as_secs_f32());
                 }
             }
             WindowEvent::KeyboardInput {device_id: _, event, is_synthetic} => {
