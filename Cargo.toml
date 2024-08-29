@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["justacoder", "edy131109", "coti7"]
 
 [dependencies]
-winit = "0.30.4"
+winit = "0.30.5"
 wgpu = "22.1.0"
 env_logger = "0.11.4"
 log = "0.4"
