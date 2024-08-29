@@ -1,7 +1,6 @@
 // I've shed tears of pain while writing this just so you know
 // my lifespan probably shortened by a few years because of rust
 use std::collections::HashMap;
-
 use crate::utils::{self, magnitude, normalize};
 
 pub struct Player {
@@ -24,71 +23,44 @@ impl Player {
     //     self.camera_rotation = rotation;
     // }
 
+    fn move_player(&mut self, mut movement: [f32; 3], amount: f32, direction: [f32; 3]) -> [f32; 3] {
+        movement[0] += amount * direction[0];
+        movement[1] += amount * direction[1];
+        movement[2] += amount * direction[2];
+        return movement;
+    }
+
     // you will need to call this every frame
     pub fn update(&mut self, inputs: &HashMap<u8, bool>, dt: f32) {
         let mut rotation: [f32; 3] = self.camera_rotation;
         let move_amount = self.speed * dt;
-        let mut movement : [f32; 3] = [0.0; 3];
-        
-        if inputs.get(&('w' as u8)).is_some() {
-            if *inputs.get(&('w' as u8)).unwrap() {
-                let direction: [f32; 3] = utils::rotation_to_direction(rotation);
-                movement[0] += move_amount * direction[0];
-                movement[1] += move_amount * direction[1];
-                movement[2] += move_amount * direction[2];
-            }
-        }
-        if inputs.get(&('a' as u8)).is_some() {
-            if *inputs.get(&('a' as u8)).unwrap() {
-                rotation[0] += 270.0;
-                let direction: [f32; 3] = utils::rotation_to_direction(rotation);
-                rotation[0] -= 270.0;
-                movement[0] += move_amount * direction[0];
-                movement[1] += move_amount * direction[1];
-                movement[2] += move_amount * direction[2];
-            }
-        }
-        if inputs.get(&('s' as u8)).is_some() {
-            if *inputs.get(&('s' as u8)).unwrap() {
-                rotation[0] += 180.0;
-                let direction: [f32; 3] = utils::rotation_to_direction(rotation);
-                rotation[0] -= 180.0;
-                movement[0] += move_amount * direction[0];
-                movement[1] += move_amount * direction[1];
-                movement[2] += move_amount * direction[2];
-            }
-        }
-        if inputs.get(&('d' as u8)).is_some() {
-            if *inputs.get(&('d' as u8)).unwrap() {
-                rotation[0] += 90.0;
-                let direction: [f32; 3] = utils::rotation_to_direction(rotation);
-                rotation[0] -= 90.0;
-                movement[0] += move_amount * direction[0];
-                movement[1] += move_amount * direction[1];
-                movement[2] += move_amount * direction[2];
-            }
-        }
-        if inputs.get(&('e' as u8)).is_some() {
-            if *inputs.get(&('e' as u8)).unwrap() {
-                rotation[1] += 90.0;
-                let direction: [f32; 3] = utils::rotation_to_direction(rotation);
-                rotation[1] -= 90.0;
-                movement[0] += move_amount * direction[0];
-                movement[1] += move_amount * direction[1];
-                movement[2] += move_amount * direction[2];
-            }
-        }
-        if inputs.get(&('q' as u8)).is_some() {
-            if *inputs.get(&('q' as u8)).unwrap() {
-                rotation[1] += 270.0;
-                let direction: [f32; 3] = utils::rotation_to_direction(rotation);
-                rotation[1] -= 270.0;
-                movement[0] += move_amount * direction[0];
-                movement[1] += move_amount * direction[1];
-                movement[2] += move_amount * direction[2];
-            }
-        }
+        let mut movement : [f32; 3] = [0.; 3];
 
+        if *inputs.get(&('w' as u8)).unwrap_or(&false) {
+            let direction: [f32; 3] = utils::rotation_to_direction(rotation);
+            movement = self.move_player(movement, move_amount, direction);
+        }
+        if *inputs.get(&('a' as u8)).unwrap_or(&false) {
+            let direction: [f32; 3] = utils::rotation_to_direction([rotation[0] + 270., rotation[1], rotation[2]]);
+            movement = self.move_player(movement, move_amount, direction);
+        }
+        if *inputs.get(&('s' as u8)).unwrap_or(&false) {
+            let direction: [f32; 3] = utils::rotation_to_direction([rotation[0] + 180., rotation[1], rotation[2]]);
+            movement = self.move_player(movement, move_amount, direction);
+        }
+        if *inputs.get(&('d' as u8)).unwrap_or(&false) {
+            let direction: [f32; 3] = utils::rotation_to_direction([rotation[0] + 90., rotation[1], rotation[2]]);
+            movement = self.move_player(movement, move_amount, direction);
+        }
+        if *inputs.get(&('e' as u8)).unwrap_or(&false) {
+            let direction: [f32; 3] = utils::rotation_to_direction([rotation[0], rotation[1] + 90., rotation[2]]);
+            movement = self.move_player(movement, move_amount, direction);
+        }
+        if *inputs.get(&('q' as u8)).unwrap_or(&false) {
+            let direction: [f32; 3] = utils::rotation_to_direction([rotation[0], rotation[1] + 270., rotation[2]]);
+            movement = self.move_player(movement, move_amount, direction);
+        }
+        
         if magnitude(movement) > move_amount {
             movement = normalize(movement);
             movement[0] *= move_amount;
