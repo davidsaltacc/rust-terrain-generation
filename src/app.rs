@@ -15,7 +15,7 @@ pub struct App<'window> {
     player: player::Player,
     keys: HashMap<u8, bool>,
     window: Option<Arc<Window>>,
-    wgpu_ctx: Option<WgpuCtx<'window>>,
+    wgpu_ctx: Option<WgpuCtx<'window>>
 }
 
 impl App<'_> {
@@ -36,12 +36,7 @@ impl<'window> ApplicationHandler for App<'window> {
         }
     }
 
-    fn window_event(
-        &mut self,
-        event_loop: &ActiveEventLoop,
-        _window_id: WindowId,
-        event: WindowEvent,
-    ) {
+    fn window_event(&mut self, event_loop: &ActiveEventLoop, _window_id: WindowId, event: WindowEvent) {
         match event {
             WindowEvent::CloseRequested => {
                 event_loop.exit();
@@ -84,4 +79,5 @@ impl<'window> ApplicationHandler for App<'window> {
     fn about_to_wait(&mut self, _event_loop: &ActiveEventLoop) {
         self.window.as_mut().unwrap().request_redraw();
     }
+
 }

@@ -71,7 +71,7 @@ impl Player {
         self.player_position[0] -= movement[0];
         self.player_position[1] += movement[1];
         self.player_position[2] += movement[2];
-        //println!("The player's position is [{}, {}, {}].", self.player_position[0], self.player_position[1], self.player_position[2]);
+    
     }
 
     pub fn get_relative_position(&self, position: [f32; 3]) -> [f32; 3] {
