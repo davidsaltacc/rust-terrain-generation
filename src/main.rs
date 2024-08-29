@@ -1,4 +1,5 @@
-#![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"]
+// NOTE, this removes all print statements, so only uncomment this when building as release
 
 use crate::app::App;
 use winit::error::EventLoopError;
