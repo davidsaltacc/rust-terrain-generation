@@ -250,8 +250,8 @@ impl<'window> WgpuContext<'window> {
             uniforms.extend(mat_4x4.concat());
         }
         uniforms.push(player.player_position.x as f32);
-        uniforms.push(player.player_position.y as f32);
         uniforms.push(player.player_position.z as f32);
+        uniforms.push(0. as f32);
         uniforms.push(0. as f32);
         self.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&uniforms));
     }
