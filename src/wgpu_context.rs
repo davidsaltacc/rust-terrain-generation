@@ -1,11 +1,12 @@
 
 use crate::vector::Vector3;
-use crate::{transforms, utils, vertex_data};
+use crate::vertex_data::VertexData;
+use crate::{transforms, utils};
 use std::borrow::Cow;
 use std::iter;
 use std::sync::Arc;
 use bytemuck::{Pod, Zeroable};
-use cgmath::{Matrix4, Point3};
+use cgmath::{ Matrix4, Point3};
 use wgpu::util::DeviceExt;
 use wgpu::MemoryHints::Performance;
 use wgpu::ShaderSource;
@@ -14,7 +15,7 @@ use crate::player;
 
 
 #[allow(unused)] // TODO remove this once it is used
-pub struct WgpuCtx<'window> {
+pub struct WgpuContext<'window> {
     surface: wgpu::Surface<'window>,
     surface_config: wgpu::SurfaceConfiguration,
     adapter: wgpu::Adapter,
@@ -26,35 +27,32 @@ pub struct WgpuCtx<'window> {
     view_mat: Matrix4<f32>,
     project_mat: Matrix4<f32>,
     vertex_buffer: wgpu::Buffer, 
-    uniform_buffer: wgpu::Buffer 
+    uniform_buffer: wgpu::Buffer,
+    vertex_data: VertexData
 }
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
 struct Vertex {
-    position: [f32; 4],
-    color: [f32; 4],
+    position: [f32; 4]
 }
 
-fn vertex(pos: [i8; 3], col: [i8; 3]) -> Vertex {
+fn vertex(pos: [f32; 3]) -> Vertex {
     return Vertex {
-        position: [pos[0] as f32, pos[1] as f32, pos[2] as f32, 1.0],
-        color: [col[0] as f32, col[1] as f32, col[2] as f32, 1.0]
+        position: [pos[0], pos[1], pos[2], 1.0]
     };
 }
 
-fn create_vertices() -> Vec<Vertex> {
-    let pos = vertex_data::cube_positions();
-    let col = vertex_data::cube_colors();
-    let mut data: Vec<Vertex> = Vec::with_capacity(pos.len());
+fn create_vertices(pos: &Vec<[f32; 3]>) -> Vec<Vertex> {
+    let mut vdata: Vec<Vertex> = Vec::with_capacity(pos.len());
     for i in 0..pos.len() {
-        data.push(vertex(pos[i], col[i]));
+        vdata.push(vertex(pos[i]));
     }
-    return data.to_vec();
+    return vdata.to_vec();
 }
 
 impl Vertex {
-    const ATTRIBUTES: [wgpu::VertexAttribute; 2] = wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x4];
+    const ATTRIBUTES: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![0 => Float32x4];
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
             array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
@@ -64,8 +62,8 @@ impl Vertex {
     }
 }
 
-impl<'window> WgpuCtx<'window> {
-    pub async fn new_async(window: Arc<Window>) -> WgpuCtx<'window> {
+impl<'window> WgpuContext<'window> {
+    pub async fn new_async(window: Arc<Window>) -> WgpuContext<'window> {
 
         let instance = wgpu::Instance::default();
         let surface = instance.create_surface(Arc::clone(&window)).unwrap();
@@ -108,13 +106,22 @@ impl<'window> WgpuCtx<'window> {
         });
 
         let model_mat = transforms::create_transforms([0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [1.0, 1.0, 1.0]);
-        let (view_mat, project_mat, view_project_mat) = transforms::create_view_projection((0., 0., 0.).into(), (0., 0., 0.).into(), cgmath::Vector3::unit_y(), width as f32 / height as f32, true);
-        let mvp_mat = view_project_mat * model_mat;
+        let view_mat = transforms::create_view((0., 0., 0.).into(), (0., 0., 0.).into(), cgmath::Vector3::unit_y());
+        let project_mat = transforms::create_projection(width as f32 / height as f32, true);
 
-        let mvp_ref: &[f32; 16] = mvp_mat.as_ref();
+        let mut uniforms = Vec::<f32>::new(); 
+        for mat in [model_mat, view_mat, project_mat] {
+            let mat_4x4: [[f32; 4]; 4] = mat.into();
+            uniforms.extend(mat_4x4.concat());
+        }
+        uniforms.push(0.);
+        uniforms.push(0.);
+        uniforms.push(0.);
+        uniforms.push(0.);
+
         let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Uniform Buffer"),
-            contents: bytemuck::cast_slice(mvp_ref),
+            contents: bytemuck::cast_slice(&uniforms),
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST
         });
 
@@ -170,7 +177,7 @@ impl<'window> WgpuCtx<'window> {
                 })]
             }),
             primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::TriangleList,
+                topology: wgpu::PrimitiveTopology::TriangleStrip,
                 strip_index_format: None,
                 ..Default::default()
             },
@@ -181,18 +188,24 @@ impl<'window> WgpuCtx<'window> {
                 stencil: wgpu::StencilState::default(),
                 bias: wgpu::DepthBiasState::default()
             }),
-            multisample: wgpu::MultisampleState::default(),
+            multisample: wgpu::MultisampleState {
+                count: 4,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
             multiview: None,
             cache: None
         });
+
+        let vertex_data = VertexData::new();
     
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Vertex Buffer"),
-            contents: bytemuck::cast_slice(&create_vertices()),
+            contents: bytemuck::cast_slice(&create_vertices(&vertex_data.positions)),
             usage: wgpu::BufferUsages::VERTEX,
         });
 
-        return WgpuCtx {
+        return WgpuContext {
             surface,
             surface_config,
             adapter,
@@ -204,12 +217,13 @@ impl<'window> WgpuCtx<'window> {
             view_mat,
             project_mat,
             vertex_buffer,
-            uniform_buffer
+            uniform_buffer,
+            vertex_data
         };
     }
 
-    pub fn new(window: Arc<Window>) -> WgpuCtx<'window> {
-        return pollster::block_on(WgpuCtx::new_async(window));
+    pub fn new(window: Arc<Window>) -> WgpuContext<'window> {
+        return pollster::block_on(WgpuContext::new_async(window));
     }
 
     pub fn resize(&mut self, new_size: (u32, u32)) {
@@ -219,30 +233,44 @@ impl<'window> WgpuCtx<'window> {
         self.surface.configure(&self.device, &self.surface_config);
 
         self.project_mat = transforms::create_projection(width as f32 / height as f32, true);
-        let mvp_mat = self.project_mat * self.view_mat * self.model_mat;        
-        let mvp_ref:&[f32; 16] = mvp_mat.as_ref();
-        self.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(mvp_ref));
     }
 
     pub fn update(&mut self, _dt: std::time::Duration, player: &player::Player) {
 
-        let up_direction = cgmath::Vector3::unit_y();
-        let mut camera_look_direction: Vector3 = utils::rotation_to_direction(player.camera_rotation);
+        let mut camera_look_direction: Vector3 = utils::rotation_to_direction(player.smooth_camera_rotation);
         camera_look_direction.x = -camera_look_direction.x;
         
-        let (view_mat, project_mat, _) = transforms::create_view_projection(Point3::new(0.0, 0.0, -0.0000001), Point3::from(camera_look_direction), up_direction, self.surface_config.width as f32 / self.surface_config.height as f32, true);
-        self.view_mat = view_mat;
-        self.project_mat = project_mat;
+        self.view_mat = transforms::create_view(Point3::new(0.0, 0.0, -0.0000001), Point3::from(camera_look_direction), cgmath::Vector3::unit_y());
+        self.project_mat = transforms::create_projection(self.surface_config.width as f32 / self.surface_config.height as f32, true);
+        self.model_mat = transforms::create_transforms(<[f32; 3]>::from(player.get_relative_position(Vector3::new(player.player_position.x - 12.5, -5., player.player_position.z - 12.5))), [0., 0., 0.], [1., 1., 1.]);
 
-        let model_mat = transforms::create_transforms(<[f32; 3]>::from(player.get_relative_position(Vector3::new(0.0, 0.0, 5.0))), <[f32; 3]>::from(Vector3::new(0.0, 0.0, 0.0)), [1.0, 1.0, 1.0]);
-        let mvp_mat = self.project_mat * self.view_mat * model_mat;        
-        let mvp_ref: &[f32; 16] = mvp_mat.as_ref();
-        self.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(mvp_ref));
+        let mut uniforms = Vec::<f32>::new(); 
+        for mat in [self.model_mat, self.view_mat, self.project_mat] {
+            let mat_4x4: [[f32; 4]; 4] = mat.into();
+            uniforms.extend(mat_4x4.concat());
+        }
+        uniforms.push(player.player_position.x as f32);
+        uniforms.push(player.player_position.y as f32);
+        uniforms.push(player.player_position.z as f32);
+        uniforms.push(0. as f32);
+        self.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&uniforms));
     }
 
     pub fn draw(&mut self) {
         let surface_texture = self.surface.get_current_texture().expect("Failed to acquire next swap chain texture");
         let texture_view = surface_texture.texture.create_view(&wgpu::TextureViewDescriptor::default());
+
+        let multisample_texture = self.device.create_texture(&wgpu::TextureDescriptor{
+            format: surface_texture.texture.format(),
+            sample_count: 4,
+            size: surface_texture.texture.size(),
+            usage: surface_texture.texture.usage(),
+            mip_level_count: surface_texture.texture.mip_level_count(),
+            label: Some("Multisample Texture"),
+            dimension: surface_texture.texture.dimension(),
+            view_formats: &[]
+        });
+        let multisample_view = multisample_texture.create_view(&wgpu::TextureViewDescriptor::default());
 
         let depth_texture = self.device.create_texture(&wgpu::TextureDescriptor {
             size: wgpu::Extent3d {
@@ -251,7 +279,7 @@ impl<'window> WgpuCtx<'window> {
                 depth_or_array_layers: 1
             },
             mip_level_count: 1,
-            sample_count: 1,
+            sample_count: 4,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Depth24Plus,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
@@ -265,8 +293,8 @@ impl<'window> WgpuCtx<'window> {
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Render Pass"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &texture_view,
-                    resolve_target: None,
+                    view: &multisample_view,
+                    resolve_target: Some(&texture_view),
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
                         store: wgpu::StoreOp::Store
@@ -287,7 +315,7 @@ impl<'window> WgpuCtx<'window> {
             pass.set_pipeline(&self.render_pipeline);
             pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
             pass.set_bind_group(0, &self.uniform_bind_group, &[]);
-            pass.draw(0..36, 0..1);
+            pass.draw(0..self.vertex_data.length, 0..1);
         }
 
         self.queue.submit(iter::once(encoder.finish()));

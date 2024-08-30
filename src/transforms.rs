@@ -2,42 +2,21 @@
 use std::f32::consts::PI;
 use cgmath::{ortho, perspective, Matrix4, Point3, Rad, Vector3};
 
-pub const OPENGL2WGPU: Matrix4<f32> = Matrix4::new(
-    1., 0., 0.,  0.,
-    0., 1., 0.,  0.,
-    0., 0., 0.5, 0.,
-    0., 0., 0.5, 1. 
-);
-
-pub fn create_view_projection(cam_pos: Point3<f32>, cam_look_dir: Point3<f32>, up_direction: Vector3<f32>, aspect: f32, is_perspective: bool) -> (Matrix4<f32>, Matrix4<f32>, Matrix4<f32>) {
+pub fn create_view(cam_pos: Point3<f32>, cam_look_dir: Point3<f32>, up_direction: Vector3<f32>) -> Matrix4<f32> {
 
     let view_mat = Matrix4::look_at_rh(cam_pos, cam_look_dir, up_direction);
-    let project_mat: Matrix4<f32>;
 
-    if is_perspective {
-        project_mat = OPENGL2WGPU * perspective(Rad(2.0 * PI / 5.0), aspect, 0.1, 100.0);
-    } else {
-        project_mat = OPENGL2WGPU * ortho(-4.0, 4.0, -3.0, 3.0, -1.0, 6.0);
-    }
+    return view_mat;
 
-    let view_project_mat = project_mat * view_mat;
-
-    return (view_mat, project_mat, view_project_mat);
-
-}
-
-#[allow(unused)] // TODO remove this once it is used
-pub fn create_view(cam_pos: Point3<f32>, cam_look_dir: Point3<f32>, up_direction: Vector3<f32>) -> Matrix4<f32> {
-    return Matrix4::look_at_rh(cam_pos, cam_look_dir, up_direction);
 }
 
 pub fn create_projection(aspect: f32, is_perspective: bool) -> Matrix4<f32> {
     let project_mat: Matrix4<f32>;
 
     if is_perspective {
-        project_mat = OPENGL2WGPU * perspective(Rad(2.0 * PI / 5.0), aspect, 0.1, 100.0);
+        project_mat = perspective(Rad(2.0 * PI / 5.0), aspect, 0.1, 100.0);
     } else {
-        project_mat = OPENGL2WGPU * ortho(-4.0, 4.0, -3.0, 3.0, -1.0, 6.0);
+        project_mat = ortho(-4.0, 4.0, -3.0, 3.0, -1.0, 6.0);
     }
 
     return project_mat;

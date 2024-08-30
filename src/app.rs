@@ -6,13 +6,13 @@ use winit::application::ApplicationHandler;
 use winit::event::*;
 use winit::event_loop::ActiveEventLoop;
 use winit::window::{Window, WindowId};
-use crate::wgpu_ctx::WgpuCtx;
+use crate::wgpu_context::WgpuContext;
 use crate::player;
 
 #[derive(Default)]
 struct MouseGrabber {
 	last_pos: winit::dpi::PhysicalPosition<f64>,
-	manual_lock: bool,
+	manual_lock: bool
 }
 
 // winit does not support cursor locking on win10, so we need to make it ourselves
@@ -47,7 +47,7 @@ pub struct App<'window> {
     player: player::Player,
     keys: HashMap<u8, bool>,
     window: Option<Arc<Window>>,
-    wgpu_ctx: Option<WgpuCtx<'window>>,
+    wgpu_ctx: Option<WgpuContext<'window>>,
     mouse_grabber: MouseGrabber
 }
 
@@ -64,7 +64,7 @@ impl<'window> ApplicationHandler for App<'window> {
             let win_attr = Window::default_attributes().with_title("Rust Terrain Generation");
             let window = Arc::new(event_loop.create_window(win_attr).expect("Error creating window."));
             self.window = Some(window.clone());
-            self.wgpu_ctx = Some(WgpuCtx::new(window.clone()));
+            self.wgpu_ctx = Some(WgpuContext::new(window.clone()));
             self.mouse_grabber.grab(&window, true);
         }
     }

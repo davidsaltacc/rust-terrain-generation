@@ -1,6 +1,6 @@
 use std::ops::*;
 use cgmath::Point3;
-
+use lerp::Lerp;
 use crate::utils;
 
 #[derive(Copy, Clone, Default)]
@@ -15,24 +15,16 @@ impl Vector3 {
         Self { x: x, y: y, z: z }
     }
 
-    pub fn sum(&self) -> f32 {
-        return self.x + self.y + self.z;
-    }
-
-    pub fn abs_sum(&self) -> f32 {
-        return self.x.abs() + self.y.abs() + self.z.abs();
-    }
-
-    pub fn abs_sub(&self) -> f32 {
-        return self.x.abs() - self.y.abs() - self.z.abs();
-    }
-
     pub fn rad(&self) -> Vector3 {
         return Vector3 { x: utils::degrees_to_radians(self.x), y: utils::degrees_to_radians(self.y), z: utils::degrees_to_radians(self.z) };
     }
 
     pub fn invert_xy(&self) -> Vector3 {
         return Vector3 { x: self.y, y: self.x, z: self.z };
+    }
+    
+    pub fn lerp_vec(&self, other: Vector3, t: f32) -> Vector3 {
+        return Vector3 { x: self.x.lerp(other.x, t), y: self.y.lerp(other.y, t), z: self.z.lerp(other.z, t) };
     }
 }
 
