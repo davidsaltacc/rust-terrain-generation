@@ -1,7 +1,6 @@
 use std::ops::*;
 use cgmath::Point3;
 use lerp::Lerp;
-
 use crate::utils;
 
 #[derive(Copy, Clone, Default)]
@@ -23,7 +22,7 @@ impl Vector3 {
     pub fn invert_xy(&self) -> Vector3 {
         return Vector3 { x: self.y, y: self.x, z: self.z };
     }
-
+    
     pub fn lerp_vec(&self, other: Vector3, t: f32) -> Vector3 {
         return Vector3 { x: self.x.lerp(other.x, t), y: self.y.lerp(other.y, t), z: self.z.lerp(other.z, t) };
     }

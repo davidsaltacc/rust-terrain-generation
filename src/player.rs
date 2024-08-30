@@ -49,7 +49,7 @@ impl Player {
         let move_amount = self.speed * dt;
         let mut movement : Vector3 = Vector3::new(0.0, 0.0, 0.0);
 
-        self.smooth_camera_rotation = self.smooth_camera_rotation.lerp_vec(self.camera_rotation, 0.9 * dt * 30.0); // 30 is the smoothing factor (increase for roughness, decrease for smoothness)
+        self.smooth_camera_rotation = self.smooth_camera_rotation.lerp_vec(self.camera_rotation, 0.9 * dt * 10.0); // 10 is the smoothing factor (increase for roughness, decrease for smoothness)
         self.smooth_player_position = self.smooth_player_position.lerp_vec(self.player_position, 0.9 * dt * 10.0);
 
         // these must be in this order if you move a and d after the rest shit will unexpectedly break.
@@ -90,7 +90,6 @@ impl Player {
 
     pub fn get_relative_position(&self, position: Vector3) -> Vector3 {
         let new_position: Vector3 = position - self.smooth_player_position;
-
         return new_position;
     }
 }
