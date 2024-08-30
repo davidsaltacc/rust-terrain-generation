@@ -27,8 +27,10 @@ impl VertexData {
     
     pub fn new() -> Self {
         let positions = Self::vertex_positions();
+        let length = positions.len() as u32;
+        println!("Created {} vertices", length);
         return Self {
-            length: positions.len() as u32,
+            length,
             positions
         };
     }
