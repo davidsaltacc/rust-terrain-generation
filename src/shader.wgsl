@@ -60,13 +60,56 @@ fn perlinNoise2(P: vec2f) -> f32 { // credit to Stefan Gustavson for this perlin
     return 2.3 * n_xy;
 }
 
+fn fbm(pos: vec2<f32>) -> f32 {
+
+    // can be fucked around with
+    var amplitude: f32 = 1.25;
+    var frequency: f32 = 0.7;
+    var octave_count: u32 = 7;
+    var persistence: f32 = 0.45;
+    var lacunarity: f32 = 2.5;
+
+
+    var value: f32 = 0.;
+	for (var i: u32 = 0; i < octave_count; i++) {
+		value += amplitude * perlinNoise2(vec2<f32>(pos.x * frequency, pos.y * frequency));
+		amplitude *= persistence;
+		frequency *= lacunarity;
+    }
+    return value;
+}
+
+fn domain_warp(pos: vec2<f32>) -> vec2<f32> {
+
+
+    // can be fucked around with
+    var warps: u32 = 2;
+    var falloff: f32 = 0.9;
+    var scale: f32 = 0.3;
+
+    
+    var x: f32 = pos.x;
+    var y: f32 = pos.y;
+    for (var i: u32 = 0; i < warps; i++) {
+		x += scale * fbm(pos);
+		y += scale * fbm(-pos);
+		scale *= falloff;
+	}
+    return vec2<f32>(x, y);
+}
+
+fn noise(pos: vec2<f32>) -> f32 {
+    var warped: vec2<f32> = domain_warp(pos * 0.5);
+    return fbm(warped);
+}
+
 @vertex
 fn vs_main(@location(0) _pos: vec4<f32>) -> Output {
     var output: Output;
     var pos: vec4<f32> = _pos;
 
 
-    pos = (pos + vec4<f32>(0., (perlinNoise2(vec2<f32>(pos.x + uniforms.transformForNoise.x, pos.z + uniforms.transformForNoise.y)) + 1) / 2., 0., 0.));
+    pos = (pos + vec4<f32>(0., (noise(vec2<f32>(pos.x + uniforms.transformForNoise.x, pos.z + uniforms.transformForNoise.y)) + 1) / 2., 0., 0.));
 
 
     output.Position = (((OPENGL2WGSL * uniforms.projectMat) * uniforms.viewMat) * uniforms.modelMat) * pos;
