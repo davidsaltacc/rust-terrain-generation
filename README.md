@@ -1,6 +1,3 @@
 # rust-terrain-generation
-david is very sigma
-coti and edy included
-skibidi sigma
-oh hello
-check this out
+
+to change quality, clone this repo, edit the values in src/vertex_data.rs and compile_as_release.bat (on windows), else compile it yourself
