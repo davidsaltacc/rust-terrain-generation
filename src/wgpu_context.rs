@@ -1,6 +1,6 @@
 
 use crate::vector::Vector3;
-use crate::vertex_data::VertexData;
+use crate::vertex_data::{self, VertexData};
 use crate::{transforms, utils};
 use std::borrow::Cow;
 use std::iter;
@@ -242,7 +242,7 @@ impl<'window> WgpuContext<'window> {
         
         self.view_mat = transforms::create_view(Point3::new(0.0, 0.0, -0.0000001), Point3::from(camera_look_direction), cgmath::Vector3::unit_y());
         self.project_mat = transforms::create_projection(self.surface_config.width as f32 / self.surface_config.height as f32, true);
-        self.model_mat = transforms::create_transforms(<[f32; 3]>::from(player.get_relative_position(Vector3::new(player.player_position.x - 12.5, -5., player.player_position.z - 12.5))), [0., 0., 0.], [1., 1., 1.]);
+        self.model_mat = transforms::create_transforms(<[f32; 3]>::from(player.get_relative_position(Vector3::new(player.player_position.x - 2.5 * vertex_data::render_dist_mul(), -5., player.player_position.z - 2.5 * vertex_data::render_dist_mul()))), [0., 0., 0.], [1., 1., 1.]);
 
         let mut uniforms = Vec::<f32>::new(); 
         for mat in [self.model_mat, self.view_mat, self.project_mat] {
