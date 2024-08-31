@@ -37,7 +37,10 @@ pub fn render_dist_mul() -> f32 {
             return 2.;
         }
         3 => {
-            return 3.;
+            return 4.;
+        },
+        4 => {
+            return 8.;
         }
         _ => {
             exit(-1); // no
@@ -50,8 +53,8 @@ impl VertexData {
     pub const QUALITY: u32 = 2; 
     // 0: ultralow (why), 1: low, 2: mid, 3: high, 4: ultra (god pc only)
 
-    pub const RENDER_DISTANCE: u32 = 1;
-    // 0: half, 1: default, 2: double, 3: quadruple
+    pub const RENDER_DISTANCE: u32 = 2;
+    // 0: half, 1: default, 2: double, 3: quadruple, 4: 8x
     
     pub fn new() -> Self {
         let positions = Self::vertex_positions();
